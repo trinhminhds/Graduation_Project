@@ -8,8 +8,6 @@
 
 ## Proposal of a Subject: Handwritten Digit Recognition System
 
-**Author:** Hoai Thuan TRAN
-
 ### Project Overview
 
 Handwritten digit recognition is a prevalent problem within the field of Optical Character Recognition (OCR) and has a wide array of practical applications, such as digitizing documents, automating data entry, and processing handwritten forms like invoices or surveys.
