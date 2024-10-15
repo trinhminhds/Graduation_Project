@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digit Recognition & Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+
+    <style>
+      #canvas,
+      #canvas2 {
+        border: 1px solid black;
+        background-color: white;
+        margin: 10px;
+      }
+
+      /* Flexbox container for layout */
+      .flex-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+      }
+
+      .flex-item {
+        flex: 1;
+        text-align: center;
+      }
+
+      .container {
+        margin-bottom: 20px;
+      }
+
+      #operationContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #operationInput {
+        width: 100px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Digit Recognition & Calculator</h2>
+
+    <div class="flex-container">
+      <!-- Số thứ 1 (bên trái) -->
+      <div class="flex-item">
+        <div class="container">
+          <h3>First Digit</h3>
+          <canvas id="canvas" width="280" height="280"></canvas><br />
+          <button onclick="clearCanvas('canvas')">Clear Canvas</button>
+          <button onclick="sendCanvas('canvas', 1)">Predict from Drawing</button><br />
+          <h4>Or Upload First Image</h4>
+          <input type="file" id="imageUpload" accept="image/*" onchange="sendImage('upload_image', 1)" />
+          <p>Prediction: <span id="digit1Prediction">N/A</span></p>
+        </div>
+      </div>
+
+      <!-- Phép tính (ở giữa) -->
+      <div class="flex-item" id="operationContainer">
+        <h3>Operation</h3>
+        <input type="text" id="operationInput" placeholder="+, -, *, /" /><br />
+        <button onclick="calculate()">Calculate</button>
+        <h4>Calculation Result: <span id="calcResult">Result will appear here...</span></h4>
+      </div>
+
+      <!-- Số thứ 2 (bên phải) -->
+      <div class="flex-item">
+        <div class="container">
+          <h3>Second Digit</h3>
+          <canvas id="canvas2" width="280" height="280"></canvas><br />
+          <button onclick="clearCanvas('canvas2')">Clear Canvas</button>
+          <button onclick="sendCanvas('canvas2', 2)">Predict from Drawing</button><br />
+          <h4>Or Upload Second Image</h4>
+          <input type="file" id="imageUpload2" accept="image/*" onchange="sendImage('upload_image2', 2)" />
+          <p>Prediction: <span id="digit2Prediction">N/A</span></p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Prediction Results:</h3>
+    <p>First Digit: <span id="result1">Waiting for input...</span></p>
+    <p>Second Digit: <span id="result2">Waiting for input...</span></p>
+
+    <script>
+      const canvases = [document.getElementById("canvas"), document.getElementById("canvas2")];
+      const contexts = [canvases[0].getContext("2d"), canvases[1].getContext("2d")];
+      let drawings = [false, false];
+
+      // Set background color for both canvases to white (necessary to avoid transparent canvas)
+      canvases.forEach((canvas, index) => {
+        contexts[index].fillStyle = "black";
+        contexts[index].fillRect(0, 0, canvas.width, canvas.height);
+      });
+
+      // Helper to begin drawing on canvas
+      function startDrawing(event, canvasIndex) {
+        drawings[canvasIndex] = true;
+        contexts[canvasIndex].beginPath();
+        contexts[canvasIndex].moveTo(event.offsetX, event.offsetY);
+      }
+
+      // Helper to stop drawing on canvas
+      function stopDrawing(canvasIndex) {
+        drawings[canvasIndex] = false;
+        contexts[canvasIndex].closePath();
+      }
+
+      // Helper to handle drawing on canvas
+      function draw(event, canvasIndex) {
+        if (!drawings[canvasIndex]) return;
+        contexts[canvasIndex].strokeStyle = "white";
+        contexts[canvasIndex].lineWidth = 14;
+        contexts[canvasIndex].lineTo(event.offsetX, event.offsetY);
+        contexts[canvasIndex].stroke();
+        contexts[canvasIndex].beginPath();
+        contexts[canvasIndex].moveTo(event.offsetX, event.offsetY);
+      }
+
+      canvases.forEach((canvas, index) => {
+        canvas.addEventListener("mousedown", (event) => startDrawing(event, index));
+        canvas.addEventListener("mouseup", () => stopDrawing(index));
+        canvas.addEventListener("mousemove", (event) => draw(event, index));
+      });
+
+      function clearCanvas(canvasId) {
+        const index = canvasId === "canvas" ? 0 : 1;
+        contexts[index].clearRect(0, 0, canvases[index].width, canvases[index].height);
+        contexts[index].fillStyle = "black";
+        contexts[index].fillRect(0, 0, canvases[index].width, canvases[index].height); // Reset to white background
+        document.getElementById(`digit${index + 1}Prediction`).textContent = "N/A";
+      }
+
+      function sendCanvas(canvasId, digitIndex) {
+        const index = canvasId === "canvas" ? 0 : 1;
+        const canvas = canvases[index];
+        const dataURL = canvas.toDataURL();
+        fetch("/predict_canvas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: dataURL }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.prediction !== undefined) {
+              document.getElementById(`digit${digitIndex}Prediction`).textContent = data.prediction;
+            } else {
+              document.getElementById(`digit${digitIndex}Prediction`).textContent = "Error";
+            }
+          })
+          .catch((error) => {
+            document.getElementById(`digit${digitIndex}Prediction`).textContent = "Error in prediction.";
+            console.error(error);
+          });
+      }
+
+      function sendImage(url, digitIndex) {
+        const fileInput =
+          digitIndex === 1 ? document.getElementById("imageUpload") : document.getElementById("imageUpload2");
+        const formData = new FormData();
+        formData.append("image", fileInput.files[0]);
+
+        fetch("/" + url, { method: "POST", body: formData })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Response Data:", data);
+            if (data.prediction !== undefined) {
+              document.getElementById(`digit${digitIndex}Prediction`).textContent = data.prediction;
+            } else {
+              document.getElementById(`digit${digitIndex}Prediction`).textContent = "Error";
+            }
+          })
+          .catch((error) => {
+            console.error("Error in prediction:", error); // Ghi log lỗi
+            document.getElementById(`digit${digitIndex}Prediction`).textContent = "Error in prediction.";
+          });
+      }
+
+      function calculate() {
+        const operation = document.getElementById("operationInput").value;
+        const firstNumber = document.getElementById("digit1Prediction").textContent;
+        const secondNumber = document.getElementById("digit2Prediction").textContent;
+
+        if (firstNumber === "N/A" || secondNumber === "N/A" || !operation) {
+          document.getElementById("calcResult").textContent = "Please provide both digits and an operation.";
+          return;
+        }
+
+        fetch("/calculate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstNumber: firstNumber,
+            secondNumber: secondNumber,
+            operation: operation,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+            document.getElementById("result").innerText = "Predicted digit for " + (index + 1) + ": " + data.prediction;
+          })
+          .catch((error) => {
+            document.getElementById("calcResult").textContent = "Error in calculation.";
+            console.error(error);
+          });
+      }
+    </script>
+  </body>
+</html>

@@ -4,3 +4,10 @@ matplotlib
 flask
 flask-cors
 tensorflow
+scikit-learn
+opencv-python
+joblib
+tkinter
+pyscreenshot
+csv
+glob
