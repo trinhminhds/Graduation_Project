@@ -8,7 +8,7 @@ import joblib
 import os
 
 # Load the trained SVM model (replace with the correct path to your model)
-MODEL_PATH = 'D:/Graduation_Project/Model/svm_digit_classifier.pkl'
+MODEL_PATH = 'D:\Graduation_Project\Model\svm_digit_classifier.pkl'
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
 
@@ -60,7 +60,7 @@ def predict_canvas():
         processed_image = process_image(img)
         prediction = svm_model.predict(processed_image)
 
-        print("Prediction Result:", prediction.shape)  # Debugging line
+        # print("Prediction Result:", prediction.shape)  # Debugging line
         # Convert prediction to a list or int before returning
         return jsonify({'prediction': int(prediction[0])})
     except Exception as e:
@@ -79,13 +79,9 @@ def upload_image():
 
         # Process the image and make a prediction
         processed_image = process_image(img)
-        print("Processed Image Shape:", processed_image.shape)
-
         prediction = svm_model.predict(processed_image)
-        prediction_digit = int(prediction[0])
-        print("Prediction Result:", prediction_digit)
         # Convert prediction to a list or int before returning
-        return jsonify({'prediction': prediction_digit})
+        return jsonify({'prediction': int(prediction[0])})
     except Exception as e:
         return jsonify({'prediction': f'Error in processing image: {str(e)}'})
     

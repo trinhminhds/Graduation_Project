@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Digit Recognition & Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="stylesheet" href="./style.css'" />
 
     <style>
       #canvas,
@@ -81,10 +81,6 @@
         </div>
       </div>
     </div>
-
-    <h3>Prediction Results:</h3>
-    <p>First Digit: <span id="result1">Waiting for input...</span></p>
-    <p>Second Digit: <span id="result2">Waiting for input...</span></p>
 
     <script>
       const canvases = [document.getElementById("canvas"), document.getElementById("canvas2")];
@@ -194,15 +190,15 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            firstNumber: firstNumber,
-            secondNumber: secondNumber,
-            operation: operation,
+            firstNumber: parseInt(firstNumber, 10),
+            secondNumber: parseInt(secondNumber, 10),
+            operation: operation.trim(),
           }),
         })
           .then((response) => response.json())
           .then((data) => {
             console.log(data);
-            document.getElementById("result").innerText = "Predicted digit for " + (index + 1) + ": " + data.prediction;
+            document.getElementById("calcResult").textContent = `${data.result}`;
           })
           .catch((error) => {
             document.getElementById("calcResult").textContent = "Error in calculation.";
