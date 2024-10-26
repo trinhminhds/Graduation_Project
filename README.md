@@ -72,8 +72,8 @@ The application provides:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repository/handwritten-digit-recognition.git
-   cd handwritten-digit-recognition
+   git clone https://github.com/trinhminhds/Graduation_Project.git
+   cd Graduation_Project
    ```
 
 2. Install dependencies:
