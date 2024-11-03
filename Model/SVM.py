@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class SVC:
     # initiating the hyperparameter
     '''
@@ -52,7 +51,7 @@ class SVC:
                     else:
 
                         # Update weight and update bias
-                        dw = 2 * self.lambda_parameter * w - x_i * binary_y[index]
+                        dw = 2 * self.lambda_parameter * w - (x_i * binary_y[index])
                         db = binary_y[index]
 
                     # Use gradient descent to update weights and bias.
@@ -62,7 +61,6 @@ class SVC:
 
             # save weights and biases for the current class model
             self.models.append((w, b))
-
 
 
     # Predict the label for a given input value
@@ -82,3 +80,9 @@ class SVC:
         # Calculate accuracy by comparing predicted labels with actual labels
         accuracy = np.mean(prediction == y)
         return accuracy
+
+
+
+
+
+

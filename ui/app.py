@@ -6,6 +6,7 @@ import re
 import io
 import joblib
 import os
+import time
 
 # Load the trained SVM model (replace with the correct path to your model)
 MODEL_PATH = 'D:\Graduation_Project\Model\svm_digit_classifier.pkl'
@@ -36,13 +37,14 @@ def process_image(img):
 def index():
     return send_from_directory('static', 'index.html')
 
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('static', 'favicon.ico')
 
 
 # Route to handle prediction from canvas drawing
-@app.route('/predict_canvas', methods=['POST'])
+@app.route('/predict_canvas', methods = ['POST'])
 def predict_canvas():
     data = request.get_json()
 
@@ -58,17 +60,25 @@ def predict_canvas():
 
         # Process the image and make a prediction
         processed_image = process_image(img)
+
+        start_time = time.time()
         prediction = svm_model.predict(processed_image)
+        end_time = time.time()
+        # Calculate prediction time
+        prediction_time = end_time - start_time
 
         # print("Prediction Result:", prediction.shape)  # Debugging line
         # Convert prediction to a list or int before returning
-        return jsonify({'prediction': int(prediction[0])})
+        return jsonify({
+            'prediction': int(prediction[0]),
+            'prediction_time': prediction_time
+        })
     except Exception as e:
         return jsonify({'prediction': f'Error in processing image: {str(e)}'})
 
 
 # Route to handle image upload
-@app.route('/upload_image', methods=['POST'])
+@app.route('/upload_image', methods = ['POST'])
 def upload_image():
     if 'image' not in request.files:
         return jsonify({'prediction': 'Error: No image file uploaded.'})
@@ -79,15 +89,23 @@ def upload_image():
 
         # Process the image and make a prediction
         processed_image = process_image(img)
+        start_time = time.time()
         prediction = svm_model.predict(processed_image)
+        end_time = time.time()
+        # Calculate prediction time
+        prediction_time = end_time - start_time
+
         # Convert prediction to a list or int before returning
-        return jsonify({'prediction': int(prediction[0])})
+        return jsonify({
+            'prediction': int(prediction[0]),
+            'prediction_time': prediction_time
+        })
     except Exception as e:
         return jsonify({'prediction': f'Error in processing image: {str(e)}'})
-    
+
 
 # Inside your Flask app
-@app.route('/upload_image2', methods=['POST'])
+@app.route('/upload_image2', methods = ['POST'])
 def upload_image2():
     if 'image' not in request.files:
         return jsonify({'prediction': 'Error: No image file uploaded.'})
@@ -98,14 +116,21 @@ def upload_image2():
 
         # Process the image and make a prediction
         processed_image = process_image(img)
+        start_time = time.time()
         prediction = svm_model.predict(processed_image)
-        return jsonify({'prediction': int(prediction[0])})
+        end_time = time.time()
+        # Calculate prediction time
+        prediction_time = end_time - start_time
+        return jsonify({
+            'prediction': int(prediction[0]),
+            'prediction_time': prediction_time
+        })
     except Exception as e:
         return jsonify({'prediction': f'Error in processing image: {str(e)}'})
 
 
 # Route to handle basic calculations
-@app.route('/calculate', methods=['POST'])
+@app.route('/calculate', methods = ['POST'])
 def calculate():
     try:
         data = request.get_json()
@@ -133,4 +158,4 @@ def calculate():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug = True)
