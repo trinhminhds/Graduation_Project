@@ -8,6 +8,7 @@ tensorflow
 scikit-learn
 opencv-python
 joblib
+imbalanced-learn
 #pyscreenshot
 #csv
 #glob
