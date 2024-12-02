@@ -9,9 +9,9 @@ import os
 import time
 
 # Load the trained SVM model (replace with the correct path to your model)
-MODEL_PATH = 'D:\Graduation_Project\Model\svm_digit_classifier_version2.pkl'
+MODEL_PATH = 'D:\Graduation_Project\model\svm_digit_classifier_version3.pkl'
 if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
+    raise FileNotFoundError(f"model file not found at {MODEL_PATH}")
 
 svm_model = joblib.load(MODEL_PATH)
 
