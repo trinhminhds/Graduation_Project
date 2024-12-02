@@ -9,7 +9,7 @@ import os
 import time
 
 # Load the trained SVM model (replace with the correct path to your model)
-MODEL_PATH = 'D:\Graduation_Project\Model\svm_digit_classifier.pkl'
+MODEL_PATH = 'D:\Graduation_Project\Model\svm_digit_classifier_version2.pkl'
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
 
@@ -35,12 +35,12 @@ def process_image(img):
 
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    return send_from_directory('ui/static', 'index.html')
 
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory('static', 'favicon.ico')
+    return send_from_directory('ui/static', 'favicon.ico')
 
 
 # Route to handle prediction from canvas drawing
@@ -67,8 +67,6 @@ def predict_canvas():
         # Calculate prediction time
         prediction_time = end_time - start_time
 
-        # print("Prediction Result:", prediction.shape)  # Debugging line
-        # Convert prediction to a list or int before returning
         return jsonify({
             'prediction': int(prediction[0]),
             'prediction_time': prediction_time
@@ -77,7 +75,7 @@ def predict_canvas():
         return jsonify({'prediction': f'Error in processing image: {str(e)}'})
 
 
-# Route to handle image upload
+# Route to handle image upload (for both image upload and canvas draw scenarios)
 @app.route('/upload_image', methods = ['POST'])
 def upload_image():
     if 'image' not in request.files:
@@ -95,7 +93,6 @@ def upload_image():
         # Calculate prediction time
         prediction_time = end_time - start_time
 
-        # Convert prediction to a list or int before returning
         return jsonify({
             'prediction': int(prediction[0]),
             'prediction_time': prediction_time
@@ -104,57 +101,47 @@ def upload_image():
         return jsonify({'prediction': f'Error in processing image: {str(e)}'})
 
 
-# Inside your Flask app
-@app.route('/upload_image2', methods = ['POST'])
-def upload_image2():
-    if 'image' not in request.files:
-        return jsonify({'prediction': 'Error: No image file uploaded.'})
-
-    try:
-        file = request.files['image']
-        img = Image.open(file.stream)
-
-        # Process the image and make a prediction
-        processed_image = process_image(img)
-        start_time = time.time()
-        prediction = svm_model.predict(processed_image)
-        end_time = time.time()
-        # Calculate prediction time
-        prediction_time = end_time - start_time
-        return jsonify({
-            'prediction': int(prediction[0]),
-            'prediction_time': prediction_time
-        })
-    except Exception as e:
-        return jsonify({'prediction': f'Error in processing image: {str(e)}'})
-
-
-# Route to handle basic calculations
+# Route to handle basic calculations using predicted operation
 @app.route('/calculate', methods = ['POST'])
 def calculate():
     try:
         data = request.get_json()
         first_number = int(data['firstNumber'])
-        operation = data['operation'].strip()  # Trim whitespace
         second_number = int(data['secondNumber'])
+        operation_image = data['operationImage']
 
-        # Evaluate the expression based on the operation
-        if operation == '+':
-            result = first_number + second_number
-        elif operation == '-':
-            result = first_number - second_number
-        elif operation == '*':
-            result = first_number * second_number
-        elif operation == '/':
-            result = first_number / second_number if second_number != 0 else 'Error: Division by zero'
-        else:
+        operation = predict_image(operation_image)
+
+        operations = {
+            10: lambda x, y: x + y,  # +
+            11: lambda x, y: x - y,  # -
+            12: lambda x, y: x * y,  # *
+            13: lambda x, y: x / y if y != 0 else 'Error: Division by zero'  # /
+        }
+
+        if operation not in operations:
             return jsonify({'result': 'Error: Invalid operation'})
 
+        result = operations[operation](first_number, second_number)
         return jsonify({'result': result})
     except ValueError:
-        return jsonify({'result': 'Error: Invalid number'})
+        return jsonify({'result': 'Error: Invalid input'})
     except Exception as e:
-        return jsonify({'result': f'Error in calculation: {str(e)}'})
+        return jsonify({'result': f'Error: {str(e)}'})
+
+
+# Helper function to process the operation image and predict the operation
+def predict_image(image_data):
+    try:
+        img_bytes = io.BytesIO(base64.b64decode(image_data))
+        img = Image.open(img_bytes)
+
+        processed_image = process_image(img)
+        prediction = svm_model.predict(processed_image)
+
+        return int(prediction[0])
+    except Exception as e:
+        raise ValueError(f"Error in prediction: {e}")
 
 
 if __name__ == '__main__':

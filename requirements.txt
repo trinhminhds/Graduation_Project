@@ -9,6 +9,6 @@ scikit-learn
 opencv-python
 joblib
 imbalanced-learn
-#pyscreenshot
+pyscreenshot
 #csv
 #glob
