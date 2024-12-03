@@ -4,3 +4,5 @@ svm_digit_classifier_version2.pkl
 Prediction digit 0 -> 9 and symbol +, -, *, /
 svm_digit_classifier_version3.pkl
 Prediction digit draw 0 -> 9 and symbol +, -, *, /
+svm_digit_classifier_version4.pkl
+Prediction digit and digit draw 0 -> 9 and symbol +, -, *, /
